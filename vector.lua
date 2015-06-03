@@ -30,100 +30,100 @@ local sqrt, cos, sin, atan2 = math.sqrt, math.cos, math.sin, math.atan2
 local vector = {}
 vector.__index = vector
 
-local function new(x,y)
-	return setmetatable({x = x or 0, y = y or 0}, vector)
+local function new(v)
+	return setmetatable({v[1] or 0, v[2] or 0}, vector)
 end
-local zero = new(0,0)
+local zero = new{0,0}
 
 local function isvector(v)
-	return type(v) == 'table' and type(v.x) == 'number' and type(v.y) == 'number'
+	return type(v) == 'table' and type(v[1]) == 'number' and type(v[2]) == 'number'
 end
 
 function vector:clone()
-	return new(self.x, self.y)
+	return new{self[1], self[2]}
 end
 
 function vector:unpack()
-	return self.x, self.y
+	return self[1], self[2]
 end
 
 function vector:__tostring()
-	return "("..tonumber(self.x)..","..tonumber(self.y)..")"
+	return "("..tonumber(self[1])..","..tonumber(self[2])..")"
 end
 
 function vector.__unm(a)
-	return new(-a.x, -a.y)
+	return new{-a[1], -a[2]}
 end
 
 function vector.__add(a,b)
 	assert(isvector(a) and isvector(b), "Add: wrong argument types (<vector> expected)")
-	return new(a.x+b.x, a.y+b.y)
+	return new{a[1]+b[1], a[2]+b[2]}
 end
 
 function vector.__sub(a,b)
 	assert(isvector(a) and isvector(b), "Sub: wrong argument types (<vector> expected)")
-	return new(a.x-b.x, a.y-b.y)
+	return new{a[1]-b[1], a[2]-b[2]}
 end
 
 function vector.__mul(a,b)
 	if type(a) == "number" then
-		return new(a*b.x, a*b.y)
+		return new{a*b[1], a*b[2]}
 	elseif type(b) == "number" then
-		return new(b*a.x, b*a.y)
+		return new{b*a[1], b*a[2]}
 	else
 		assert(isvector(a) and isvector(b), "Mul: wrong argument types (<vector> or <number> expected)")
-		return a.x*b.x + a.y*b.y
+		return a[1]*b[1] + a[2]*b[2]
 	end
 end
 
 function vector.__div(a,b)
 	assert(isvector(a) and type(b) == "number", "wrong argument types (expected <vector> / <number>)")
-	return new(a.x / b, a.y / b)
+	return new{a[1] / b, a[2] / b}
 end
 
 function vector.__eq(a,b)
-	return a.x == b.x and a.y == b.y
+	return a[1] == b[1] and a[2] == b[2]
 end
 
 function vector.__lt(a,b)
-	return a.x < b.x or (a.x == b.x and a.y < b.y)
+	return a[1] < b[1] or (a[1] == b[1] and a[2] < b[2])
 end
 
 function vector.__le(a,b)
-	return a.x <= b.x and a.y <= b.y
+	return a[1] <= b[1] and a[2] <= b[2]
 end
 
 function vector.permul(a,b)
 	assert(isvector(a) and isvector(b), "permul: wrong argument types (<vector> expected)")
-	return new(a.x*b.x, a.y*b.y)
+	return new{a[1]*b[1], a[2]*b[2]}
 end
 
 function vector:len2()
-	return self.x * self.x + self.y * self.y
+	return self[1] * self[1] + self[2] * self[2]
 end
 
 function vector:len()
-	return sqrt(self.x * self.x + self.y * self.y)
+	return sqrt(self[1] * self[1] + self[2] * self[2])
 end
 
 function vector.dist(a, b)
 	assert(isvector(a) and isvector(b), "dist: wrong argument types (<vector> expected)")
-	local dx = a.x - b.x
-	local dy = a.y - b.y
+	local dx = a[1] - b[1]
+	local dy = a[2] - b[2]
 	return sqrt(dx * dx + dy * dy)
 end
 
 function vector.dist2(a, b)
 	assert(isvector(a) and isvector(b), "dist: wrong argument types (<vector> expected)")
-	local dx = a.x - b.x
-	local dy = a.y - b.y
+	local dx = a[1] - b[1]
+	local dy = a[2] - b[2]
 	return (dx * dx + dy * dy)
 end
 
 function vector:normalize_inplace()
 	local l = self:len()
 	if l > 0 then
-		self.x, self.y = self.x / l, self.y / l
+		self[1], self[2] = self[1] / l, self[2] / l
 	end
 	return self
 end
@@ -134,51 +134,51 @@ end
 
 function vector:rotate_inplace(phi)
 	local c, s = cos(phi), sin(phi)
-	self.x, self.y = c * self.x - s * self.y, s * self.x + c * self.y
+	self[1], self[2] = c * self[1] - s * self[2], s * self[1] + c * self[2]
 	return self
 end
 
 function vector:rotated(phi)
 	local c, s = cos(phi), sin(phi)
-	return new(c * self.x - s * self.y, s * self.x + c * self.y)
+	return new{c * self[1] - s * self[2], s * self[1] + c * self[2]}
 end
 
 function vector:perpendicular()
-	return new(-self.y, self.x)
+	return new{-self[2], self[1]}
 end
 
 function vector:projectOn(v)
 	assert(isvector(v), "invalid argument: cannot project vector on " .. type(v))
 	-- (self * v) * v / v:len2()
-	local s = (self.x * v.x + self.y * v.y) / (v.x * v.x + v.y * v.y)
-	return new(s * v.x, s * v.y)
+	local s = (self[1] * v[1] + self[2] * v[2]) / (v[1] * v[1] + v[2] * v[2])
+	return new{s * v[1], s * v[2]}
 end
 
 function vector:mirrorOn(v)
 	assert(isvector(v), "invalid argument: cannot mirror vector on " .. type(v))
 	-- 2 * self:projectOn(v) - self
-	local s = 2 * (self.x * v.x + self.y * v.y) / (v.x * v.x + v.y * v.y)
-	return new(s * v.x - self.x, s * v.y - self.y)
+	local s = 2 * (self[1] * v[1] + self[2] * v[2]) / (v[1] * v[1] + v[2] * v[2])
+	return new{s * v[1] - self[1], s * v[2] - self[2]}
 end
 
 function vector:cross(v)
 	assert(isvector(v), "cross: wrong argument types (<vector> expected)")
-	return self.x * v.y - self.y * v.x
+	return self[1] * v[2] - self[2] * v[1]
 end
 
 -- ref.: http://blog.signalsondisplay.com/?p=336
 function vector:trim_inplace(maxLen)
 	local s = maxLen * maxLen / self:len2()
 	s = (s > 1 and 1) or math.sqrt(s)
-	self.x, self.y = self.x * s, self.y * s
+	self[1], self[2] = self[1] * s, self[2] * s
 	return self
 end
 
 function vector:angleTo(other)
 	if other then
-		return atan2(self.y, self.x) - atan2(other.y, other.x)
+		return atan2(self[2], self[1]) - atan2(other[2], other[1])
 	end
-	return atan2(self.y, self.x)
+	return atan2(self[2], self[1])
 end
 
 function vector:trimmed(maxLen)
